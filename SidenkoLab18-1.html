@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Гра</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #f0f0f0;
+      }
+      #game {
+        margin-top: 50px;
+      }
+      #game-board {
+        display: inline-block;
+        border: 2px solid #000;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .number {
+        margin: 5px;
+        padding: 5px 10px;
+        display: inline-block;
+        height: 25px;
+        width: 25px;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+      .number:hover {
+        background-color: #eee;
+      }
+      .number.clicked {
+        transform: scale(0.9);
+        opacity: 0.6;
+      }
+      #timer {
+        margin-bottom: 20px;
+      }
+      .row {
+        margin-bottom: 10px;
+      }
+      #stats {
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 50%;
+        margin: auto;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game">
+      <h1>Гра</h1>
+      <button id="start-game">Почати</button>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        let timer;
+        let attempts = 0;
+        let result = 0;
+        let rightNumber = 1;
+        let timeLeft = 60;
+        const endNumber = 25;
+
+        function startGame() {
+          $("#game").html(
+            '<h2 id="timer">' +
+              'Час: <span id="countdown">60</span> секунд' +
+              "</h2>" +
+              '<div id="game-board"></div>' +
+              "<br><br>" +
+              '<button id="restart-game">Почати з початку</button>'
+          );
+          generateGameBoard();
+          startTimer();
+        }
+
+        $("#start-game").click(function () {
+          startGame();
+        });
+
+        function generateGameBoard() {
+          let colors = ["blue", "orange", "red", "green", "purple"];
+          let fontSizes = ["13px", "15px", "19px", "23px"];
+          let gameBoard = $("#game-board");
+          let row = $('<div class="row"></div>');
+          let numbers = [];
+
+          for (let i = 1; i <= endNumber; i++) {
+            numbers.push(i);
+          }
+          numbers = shuffle(numbers);
+
+          for (let j = 0; j < numbers.length; j++) {
+            let randColor = colors[Math.floor(Math.random() * colors.length)];
+            let randFontSize =
+              fontSizes[Math.floor(Math.random() * colors.length)];
+            let numberElement = $(
+              '<div class="number" data-number="' +
+                numbers[j] +
+                '">' +
+                numbers[j] +
+                "</div>"
+            );
+            numberElement.css({
+              color: randColor,
+              "font-size": randFontSize,
+            });
+            row.append(numberElement);
+            if ((j + 1) % 5 === 0) {
+              gameBoard.append(row);
+              row = $('<div class="row"></div>');
+            }
+          }
+        }
+
+        function startTimer() {
+          timeLeft = 60;
+          timer = setInterval(function () {
+            timeLeft--;
+            $("#countdown").text(timeLeft);
+            if (timeLeft === 0) {
+              clearInterval(timer);
+              endGame();
+            }
+          }, 1000);
+        }
+
+        function endGame() {
+          attempts++;
+          $("#game").html(
+            "<h2>Гра завершена!</h2>" +
+              '<button id="restart-game">Почати з початку</button>' +
+              "<h3>Статистика:</h3>" +
+              "<table id='stats'>" +
+              "<tr><th>Спроби</th><th>Час</th></tr>" +
+              "<tbody></tbody>" +
+              "</table>"
+          );
+          displayStats();
+        }
+
+        function displayStats() {
+          $("#stats > tbody:last-child").append(
+            `<tr><td>${attempts}</td><td>${60 - timeLeft} сек</td></tr>`
+          );
+        }
+
+        function shuffle(array) {
+          for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+          }
+          return array;
+        }
+
+        $(document).on("click", ".number", function () {
+          let clickedNumber = parseInt($(this).data("number"));
+          if (clickedNumber === rightNumber) {
+            rightNumber++;
+            $(this).addClass("clicked");
+            if (rightNumber === endNumber + 1) {
+              endGame();
+            }
+          } else {
+            alert("Неправильна цифра");
+            restartGame();
+          }
+        });
+
+        function restartGame() {
+          clearInterval(timer);
+          rightNumber = 1;
+          startGame();
+        }
+
+        $(document).on("click", "#restart-game", function () {
+          restartGame();
+        });
+      });
+    </script>
+  </body>
+</html>
